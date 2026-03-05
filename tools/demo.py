@@ -284,7 +284,7 @@ def main(exp, args):
             ckpt_file = args.ckpt
         logger.info("loading checkpoint")
         with safe_globals([numpy._core.multiarray.scalar]):
-            ckpt = torch.load(ckpt_file, map_location="cpu")
+            ckpt = torch.load(ckpt_file, map_location="cpu", weights_only=False)
         # load the model state dict
         model.load_state_dict(ckpt["model"])
         logger.info("loaded checkpoint done.")

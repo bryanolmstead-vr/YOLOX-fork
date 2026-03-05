@@ -15,8 +15,8 @@ class Exp(MyExp):
 
         # Define yourself dataset path
         self.data_dir = "../../YOLOX-OneShot/datasets/COCO3"
-        self.train_ann = "annotations/instances_train2017.json"
-        self.val_ann = "annotations/instances_val2017.json"
+        self.train_ann = "instances_train2017.json"
+        self.val_ann = "instances_val2017.json"
 
         self.num_classes = 3
 

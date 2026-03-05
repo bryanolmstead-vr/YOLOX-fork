@@ -9,6 +9,9 @@ from loguru import logger
 
 import cv2
 
+import numpy
+from torch.serialization import safe_globals
+
 import torch
 
 from yolox.data.data_augment import ValTransform
@@ -280,7 +283,8 @@ def main(exp, args):
         else:
             ckpt_file = args.ckpt
         logger.info("loading checkpoint")
-        ckpt = torch.load(ckpt_file, map_location="cpu")
+        with safe_globals([numpy._core.multiarray.scalar]):
+            ckpt = torch.load(ckpt_file, map_location="cpu")
         # load the model state dict
         model.load_state_dict(ckpt["model"])
         logger.info("loaded checkpoint done.")

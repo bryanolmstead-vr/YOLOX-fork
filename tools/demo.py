@@ -307,7 +307,7 @@ def main(exp, args):
         decoder = None
 
     predictor = Predictor(
-        model, exp, COCO_CLASSES, trt_file, decoder,
+        model, exp, exp.cls_names, trt_file, decoder,
         args.device, args.fp16, args.legacy,
     )
     current_time = time.localtime()

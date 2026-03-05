@@ -13,8 +13,8 @@ class Exp(MyExp):
         self.width = 0.50
         self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
 
-        # Define yourself dataset path
-        self.data_dir = "../../YOLOX-OneShot/datasets/COCO3"
+        # Define yourself dataset path (assumes wer are in YOLOX directory)
+        self.data_dir = "../YOLOX-OneShot/datasets/COCO3"
         self.train_ann = "instances_train2017.json"
         self.val_ann = "instances_val2017.json"
 

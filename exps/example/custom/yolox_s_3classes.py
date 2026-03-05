@@ -19,6 +19,7 @@ class Exp(MyExp):
         self.val_ann = "instances_val2017.json"
 
         self.num_classes = 3
+        self.cls_names = ["candy", "cards", "cheeto"]
 
         self.max_epoch = 100
         self.data_num_workers = 4

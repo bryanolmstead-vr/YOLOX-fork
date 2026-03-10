@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 # Copyright (c) Megvii, Inc. and its affiliates.
+
+# modified to include OBB support, but still compatible with HBB datasets. 
+# For OBB datasets, the bbox format is [xc, yc, w, h, theta] where theta is in radians.
+
 """
 Data augmentation functionality. Passed as callable transformations to
 Dataset classes.
@@ -79,36 +83,52 @@ def get_affine_matrix(
     return M, scale
 
 
-def apply_affine_to_bboxes(targets, target_size, M, scale):
+def apply_affine_to_obboxes(targets, target_size, M, scale):
+    """
+    targets: N x 6, [xc, yc, w, h, theta, cls]
+    M: 2x3 affine matrix
+    """
     num_gts = len(targets)
-
-    # warp corner points
     twidth, theight = target_size
-    corner_points = np.ones((4 * num_gts, 3))
-    corner_points[:, :2] = targets[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(
-        4 * num_gts, 2
-    )  # x1y1, x2y2, x1y2, x2y1
-    corner_points = corner_points @ M.T  # apply affine transform
-    corner_points = corner_points.reshape(num_gts, 8)
 
-    # create new boxes
-    corner_xs = corner_points[:, 0::2]
-    corner_ys = corner_points[:, 1::2]
-    new_bboxes = (
-        np.concatenate(
-            (corner_xs.min(1), corner_ys.min(1), corner_xs.max(1), corner_ys.max(1))
-        )
-        .reshape(4, num_gts)
-        .T
-    )
+    new_targets = np.zeros_like(targets)
 
-    # clip boxes
-    new_bboxes[:, 0::2] = new_bboxes[:, 0::2].clip(0, twidth)
-    new_bboxes[:, 1::2] = new_bboxes[:, 1::2].clip(0, theight)
+    for i in range(num_gts):
+        xc, yc, w, h, theta, cls = targets[i]
 
-    targets[:, :4] = new_bboxes
+        # compute box corners
+        cos_t, sin_t = np.cos(theta), np.sin(theta)
+        dx = w / 2
+        dy = h / 2
+        corners = np.array([
+            [dx, dy],
+            [-dx, dy],
+            [-dx, -dy],
+            [dx, -dy]
+        ])
+        # rotate corners
+        R = np.array([[cos_t, -sin_t], [sin_t, cos_t]])
+        rotated_corners = corners @ R.T
+        rotated_corners += np.array([xc, yc])
 
-    return targets
+        # apply affine transform
+        corners_h = np.hstack([rotated_corners, np.ones((4,1))])  # homogenous
+        transformed = (M @ corners_h.T).T  # 4x2
+
+        # fit new rotated rectangle
+        rect = cv2.minAreaRect(transformed.astype(np.float32))  # ((xc, yc), (w, h), theta_deg)
+        (xc_new, yc_new), (w_new, h_new), theta_deg = rect
+        theta_new = np.deg2rad(theta_deg)
+
+        # clip coordinates
+        xc_new = np.clip(xc_new, 0, twidth)
+        yc_new = np.clip(yc_new, 0, theight)
+        w_new = np.clip(w_new, 0, twidth)
+        h_new = np.clip(h_new, 0, theight)
+
+        new_targets[i] = [xc_new, yc_new, w_new, h_new, theta_new, cls]
+
+    return new_targets
 
 
 def random_affine(
@@ -126,17 +146,28 @@ def random_affine(
 
     # Transform label coordinates
     if len(targets) > 0:
-        targets = apply_affine_to_bboxes(targets, target_size, M, scale)
+        targets = apply_affine_to_obboxes(targets, target_size, M, scale)
 
     return img, targets
 
 
-def _mirror(image, boxes, prob=0.5):
+def _mirror_obb(image, boxes, thetas, prob=0.5):
+    """
+    boxes: N x 4 [xc, yc, w, h]
+    thetas: N x 1 array of angles in radians
+    """
     _, width, _ = image.shape
     if random.random() < prob:
+        # Flip image horizontally
         image = image[:, ::-1]
-        boxes[:, 0::2] = width - boxes[:, 2::-2]
-    return image, boxes
+
+        # Flip box centers
+        boxes[:, 0] = width - boxes[:, 0]
+
+        # Flip angles
+        thetas[:] = -thetas
+
+    return image, boxes, thetas
 
 
 def preproc(img, input_size, swap=(2, 0, 1)):
@@ -165,49 +196,41 @@ class TrainTransform:
         self.hsv_prob = hsv_prob
 
     def __call__(self, image, targets, input_dim):
-        boxes = targets[:, :4].copy()
-        labels = targets[:, 4].copy()
-        if len(boxes) == 0:
-            targets = np.zeros((self.max_labels, 5), dtype=np.float32)
-            image, r_o = preproc(image, input_dim)
-            return image, targets
+        if len(targets) == 0:
+            padded_labels = np.zeros((self.max_labels, 6), dtype=np.float32)
+            image, _ = preproc(image, input_dim)
+            return image, padded_labels
+        
+        boxes = targets[:, 0:4].copy()
+        thetas = targets[:, 4].copy()
+        labels = targets[:, 5].copy()
 
-        image_o = image.copy()
-        targets_o = targets.copy()
-        height_o, width_o, _ = image_o.shape
-        boxes_o = targets_o[:, :4]
-        labels_o = targets_o[:, 4]
-        # bbox_o: [xyxy] to [c_x,c_y,w,h]
-        boxes_o = xyxy2cxcywh(boxes_o)
-
+        # HSV
         if random.random() < self.hsv_prob:
             augment_hsv(image)
-        image_t, boxes = _mirror(image, boxes, self.flip_prob)
-        height, width, _ = image_t.shape
-        image_t, r_ = preproc(image_t, input_dim)
-        # boxes [xyxy] 2 [cx,cy,w,h]
-        boxes = xyxy2cxcywh(boxes)
-        boxes *= r_
 
-        mask_b = np.minimum(boxes[:, 2], boxes[:, 3]) > 1
-        boxes_t = boxes[mask_b]
-        labels_t = labels[mask_b]
+        # Mirror
+        image, boxes, thetas = _mirror_obb(image, boxes, thetas, self.flip_prob)
+
+        # Resize
+        image, r = preproc(image, input_dim)
+        boxes *= r
+
+        # Filter out small boxes
+        mask = np.minimum(boxes[:, 2], boxes[:, 3]) > 1
+        boxes_t = boxes[mask]
+        thetas_t = thetas[mask]
+        labels_t = labels[mask]
 
         if len(boxes_t) == 0:
-            image_t, r_o = preproc(image_o, input_dim)
-            boxes_o *= r_o
-            boxes_t = boxes_o
-            labels_t = labels_o
+            boxes_t = boxes
+            thetas_t = thetas
+            labels_t = labels
 
-        labels_t = np.expand_dims(labels_t, 1)
-
-        targets_t = np.hstack((labels_t, boxes_t))
-        padded_labels = np.zeros((self.max_labels, 5))
-        padded_labels[range(len(targets_t))[: self.max_labels]] = targets_t[
-            : self.max_labels
-        ]
-        padded_labels = np.ascontiguousarray(padded_labels, dtype=np.float32)
-        return image_t, padded_labels
+        targets_t = np.hstack((boxes_t, thetas_t[:, None], labels_t[:, None]))
+        padded_labels = np.zeros((self.max_labels, 6), dtype=np.float32)
+        padded_labels[:len(targets_t), :] = targets_t[:self.max_labels, :]
+        return image, padded_labels
 
 
 class ValTransform:
@@ -233,11 +256,20 @@ class ValTransform:
         self.legacy = legacy
 
     # assume input is cv2 img for now
-    def __call__(self, img, res, input_size):
-        img, _ = preproc(img, input_size, self.swap)
+    def __call__(self, img, targets=None, input_size=(640, 640)):
+        img, r = preproc(img, input_size, self.swap)
         if self.legacy:
             img = img[::-1, :, :].copy()
             img /= 255.0
             img -= np.array([0.485, 0.456, 0.406]).reshape(3, 1, 1)
             img /= np.array([0.229, 0.224, 0.225]).reshape(3, 1, 1)
-        return img, np.zeros((1, 5))
+
+        # Handle labels
+        if targets is None or len(targets) == 0:
+            padded_labels = np.zeros((1, 6), dtype=np.float32)
+        else:
+            padded_labels = targets.copy()
+            padded_labels[:, :4] *= r  # scale xc, yc, w, h
+            # theta and class unchanged
+
+        return img, padded_labels

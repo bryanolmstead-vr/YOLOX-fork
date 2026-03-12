@@ -140,10 +140,13 @@ if __name__ == "__main__":
     for idx in range(len(dataset)):
         sample = dataset[idx]
         boxes = sample[1]  # target tensor: shape [num_boxes, 5] (x, y, w, h, class)
-        widths = boxes[:, 2]
-        heights = boxes[:, 3]
+        # Only consider rows where class_id > 0 (or non-zero width)
+        valid_mask = boxes[:, 5] > 0  # or boxes[:,2] > 0
+        valid_boxes = boxes[valid_mask]
+        widths = valid_boxes[:, 2]
+        heights = valid_boxes[:, 3]
         if (widths <= 0).any() or (heights <= 0).any():
-            print(f"Bad box at sample {idx}", boxes)
+            print(f"Bad box at sample {idx}", valid_boxes)
     print("BLO Debug: Dataset check complete.")
 
     dist_url = "auto" if args.dist_url is None else args.dist_url

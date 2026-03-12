@@ -4,6 +4,9 @@
 import os
 
 from yolox.exp import Exp as MyExp
+# Import OBB dataset and transforms
+from yolox.data.obb import OBBDataset
+from yolox.data import TrainTransform, ValTransform
 
 # yolox_s_obb_3classes.py
 # input data has 3 classes: candy, cards, cheeto
@@ -18,7 +21,7 @@ class Exp(MyExp):
         self.width = 0.50
         self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
 
-        # Define yourself dataset path (assumes wer are in YOLOX directory)
+        # Define yourself dataset path (assumes we are in YOLOX directory)
         self.data_dir = "../YOLOX-OneShot/datasets/OBB360"
         self.train_ann = "instances_train2017.json"
         self.val_ann = "instances_val2017.json"
@@ -53,3 +56,28 @@ class Exp(MyExp):
 
         # Disable mosaic in final epochs
         self.no_aug_epochs = 5
+
+    def get_dataset(self, cache: bool = False, cache_type: str = "ram"):
+        return OBBDataset(
+            data_dir=self.data_dir,
+            json_file=self.train_ann,
+            name="train2017",
+            img_size=self.input_size,
+            preproc=TrainTransform(
+                max_labels=50,
+                flip_prob=self.flip_prob,
+                hsv_prob=self.hsv_prob
+            ),
+            cache=cache,
+            cache_type=cache_type
+        )
+    
+    def get_eval_dataset(self, **kwargs):
+        legacy = kwargs.get("legacy", False)
+        return OBBDataset(
+            data_dir=self.data_dir,
+            json_file=self.val_ann,
+            name="val2017",
+            img_size=self.test_size,
+            preproc=ValTransform(legacy=legacy),
+        )

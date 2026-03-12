@@ -111,7 +111,7 @@ class OBBDataset(CacheDataset):
             theta_deg = obj.get("angle", 0.0)
             theta_rad = np.deg2rad(theta_deg)
 
-            print(f"BLO obb.py Original bbox {ix}: xc={xc}, yc={yc}, w={w}, h={h}, angle={theta_deg}")
+            #print(f"BLO obb.py Original bbox {ix}: xc={xc}, yc={yc}, w={w}, h={h}, angle={theta_deg}")
 
             res[ix, 0:4] = [xc, yc, w, h]
             res[ix, 4] = theta_rad
@@ -121,9 +121,9 @@ class OBBDataset(CacheDataset):
         res[:, :4] *= r
 
         # debug
-        for ix in range(num_objs):
-            if res[ix, 2] <= 0 or res[ix, 3] <= 0:
-                print(f"BLO obb.py Warning: negative size after scaling for box {ix}: {res[ix, :4]}")
+        #for ix in range(num_objs):
+        #    if res[ix, 2] <= 0 or res[ix, 3] <= 0:
+        #        print(f"BLO obb.py Warning: negative size after scaling for box {ix}: {res[ix, :4]}")
 
         img_info = (height, width)
         resized_info = (int(height * r), int(width * r))
@@ -195,4 +195,8 @@ class OBBDataset(CacheDataset):
 
         if self.preproc is not None:
             img, target = self.preproc(img, target, self.input_dim)
+            # BLO debug
+            neg_idx = np.where((target[:,2] <= 0) | (target[:,3] <= 0))[0]
+            if len(neg_idx) > 0:
+                print(f"BLO obb.py Negatives after preproc at idx {index}: {target[neg_idx]}")
         return img, target, img_info, img_id

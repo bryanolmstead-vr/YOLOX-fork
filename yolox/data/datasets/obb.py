@@ -126,7 +126,7 @@ class OBBDataset(CacheDataset):
             else "{:012}".format(id_) + ".jpg"
         )
 
-        print("BLO obb.py load_anno_from_ids: res[0]=", res[0] if len(res) > 0 else "empty")
+        #print("BLO obb.py load_anno_from_ids: res[0]=", res[0] if len(res) > 0 else "empty")
         return (res, img_info, resized_info, file_name)
 
     def load_anno(self, index):

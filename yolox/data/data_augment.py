@@ -196,9 +196,9 @@ class TrainTransform:
         self.hsv_prob = hsv_prob
 
     def __call__(self, image, targets, input_dim):
-        print("BLO TrainTransform start ===")
-        print("Original targets shape:", targets.shape)
-        print("Original targets[0]:", targets[0] if len(targets) > 0 else "empty")
+        #print("BLO TrainTransform start ===")
+        #print("Original targets shape:", targets.shape)
+        #print("Original targets[0]:", targets[0] if len(targets) > 0 else "empty")
 
         if len(targets) == 0:
             padded_labels = np.zeros((self.max_labels, 6), dtype=np.float32)
@@ -209,9 +209,9 @@ class TrainTransform:
         thetas = targets[:, 4].copy()
         labels = targets[:, 5].copy()
 
-        print("BLO\nBoxes shape:", boxes.shape)
-        print("Thetas shape:", thetas.shape)
-        print("Labels shape:", labels.shape)
+        #print("BLO\nBoxes shape:", boxes.shape)
+        #print("Thetas shape:", thetas.shape)
+        #print("Labels shape:", labels.shape)
 
         # HSV
         if random.random() < self.hsv_prob:
@@ -219,12 +219,12 @@ class TrainTransform:
 
         # Mirror
         image, boxes, thetas = _mirror_obb(image, boxes, thetas, self.flip_prob)
-        print("BLO After mirror: boxes:", boxes.shape, "thetas:", thetas.shape)
+        #print("BLO After mirror: boxes:", boxes.shape, "thetas:", thetas.shape)
 
         # Resize
         image, r = preproc(image, input_dim)
         boxes *= r
-        print("BLO After resize: boxes shape:", boxes.shape)
+        #print("BLO After resize: boxes shape:", boxes.shape)
 
         # Filter out small boxes
         mask = np.minimum(boxes[:, 2], boxes[:, 3]) > 1
@@ -237,15 +237,15 @@ class TrainTransform:
             thetas_t = thetas
             labels_t = labels
 
-        print("BLO After filtering: boxes_t:", boxes_t.shape, "thetas_t:", thetas_t.shape, "labels_t:", labels_t.shape)
+        #print("BLO After filtering: boxes_t:", boxes_t.shape, "thetas_t:", thetas_t.shape, "labels_t:", labels_t.shape)
 
         targets_t = np.hstack((boxes_t, thetas_t[:, None], labels_t[:, None]))
         padded_labels = np.zeros((self.max_labels, 6), dtype=np.float32)
         padded_labels[:len(targets_t), :] = targets_t[:self.max_labels, :]
 
-        print("BLO\nFinal padded_labels shape:", padded_labels.shape)
-        print("Final padded_labels[0]:", padded_labels[0] if len(targets_t) > 0 else "empty")
-        print("=== TrainTransform end ===")
+        #print("BLO\nFinal padded_labels shape:", padded_labels.shape)
+        #print("Final padded_labels[0]:", padded_labels[0] if len(targets_t) > 0 else "empty")
+        #print("=== TrainTransform end ===")
 
         return image, padded_labels
 

@@ -304,12 +304,12 @@ class YOLOXHead(nn.Module):
 
                 # ignore theta and pass [xc, yc, w, h] to AABB head
                 gt_bboxes_per_image = gt_bboxes_per_image[:, :4]      # [xc, yc, w, h]
-                print(f"BLO Batch {batch_idx} - ground-truth boxes used [xc, yc, w, h]:\n{gt_bboxes_per_image}")
-                print(f"BLO Batch {batch_idx} - classes:\n{gt_classes}")
+                #print(f"BLO Batch {batch_idx} - ground-truth boxes used [xc, yc, w, h]:\n{gt_bboxes_per_image}")
+                #print(f"BLO Batch {batch_idx} - classes:\n{gt_classes}")
 
                 bboxes_preds_per_image = bbox_preds[batch_idx]
-                print(f"BLO Batch {batch_idx} - predicted boxes shape: {bboxes_preds_per_image.shape}")
-                print(f"BLO Batch {batch_idx} - predicted boxes sample (first 5):\n{bboxes_preds_per_image[:5]}")
+                #print(f"BLO Batch {batch_idx} - predicted boxes shape: {bboxes_preds_per_image.shape}")
+                #print(f"BLO Batch {batch_idx} - predicted boxes sample (first 5):\n{bboxes_preds_per_image[:5]}")
 
                 try:
                     (

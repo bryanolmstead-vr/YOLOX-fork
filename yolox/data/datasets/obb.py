@@ -4,6 +4,8 @@
 
 # This file is modified from coco.py to support oriented bounding box (OBB) detection.
 
+from cProfile import label
+from operator import index
 import copy
 import os
 
@@ -169,6 +171,7 @@ class OBBDataset(CacheDataset):
         label, origin_image_size, _, _ = self.annotations[index]
         img = self.read_img(index)
 
+        print(f"BLO pull_item index {index}, img_id {id_}, labels {label}")
         return img, copy.deepcopy(label), origin_image_size, np.array([id_])
 
     @CacheDataset.mosaic_getitem

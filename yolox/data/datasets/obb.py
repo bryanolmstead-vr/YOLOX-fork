@@ -110,12 +110,20 @@ class OBBDataset(CacheDataset):
             theta = obj.get("angle", 0.0)  # fallback to 0 if missing
             theta_deg = obj.get("angle", 0.0)
             theta_rad = np.deg2rad(theta_deg)
+
+            print(f"BLO obb.py Original bbox {ix}: xc={xc}, yc={yc}, w={w}, h={h}, angle={theta_deg}")
+
             res[ix, 0:4] = [xc, yc, w, h]
             res[ix, 4] = theta_rad
             res[ix, 5] = cls
 
         r = min(self.img_size[0] / height, self.img_size[1] / width)
         res[:, :4] *= r
+
+        # debug
+         for ix in range(num_objs):
+            if res[ix, 2] <= 0 or res[ix, 3] <= 0:
+                print(f"BLO obb.py Warning: negative size after scaling for box {ix}: {res[ix, :4]}")
 
         img_info = (height, width)
         resized_info = (int(height * r), int(width * r))

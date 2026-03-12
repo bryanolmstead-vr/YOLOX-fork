@@ -296,7 +296,9 @@ class YOLOXHead(nn.Module):
                 obj_target = outputs.new_zeros((total_num_anchors, 1))
                 fg_mask = outputs.new_zeros(total_num_anchors).bool()
             else:
-                gt_bboxes_per_image = labels[batch_idx, :num_gt, 1:5]
+                #gt_bboxes_per_image = labels[batch_idx, :num_gt, 1:5]
+                # BLO - ignore theta and pass it [xc, yc, w, h] and it will think it is AABB
+                gt_bboxes_per_image = gt_bboxes_per_image[:, :4]  # [xc, yc, w, h]
                 gt_classes = labels[batch_idx, :num_gt, 0]
                 bboxes_preds_per_image = bbox_preds[batch_idx]
 

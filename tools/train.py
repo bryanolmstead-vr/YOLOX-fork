@@ -139,12 +139,12 @@ if __name__ == "__main__":
     dataset = exp.get_dataset(cache=True)  # force load
     for idx in range(len(dataset)):
         sample = dataset[idx]
-        boxes = sample["boxes"]
+        boxes = sample[1]  # target tensor: shape [num_boxes, 5] (x, y, w, h, class)
         widths = boxes[:, 2]
         heights = boxes[:, 3]
         if (widths <= 0).any() or (heights <= 0).any():
             print(f"Bad box at sample {idx}", boxes)
-    print
+    print("BLO Debug: Dataset check complete.")
 
     dist_url = "auto" if args.dist_url is None else args.dist_url
     launch(

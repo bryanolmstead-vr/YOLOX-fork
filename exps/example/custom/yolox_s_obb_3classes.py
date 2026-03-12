@@ -55,6 +55,7 @@ class Exp(MyExp):
         self.perspective = 0.0
 
         # TURN OFF ALL AUGMENTATIONS  
+        print("BLO - Turned off all augmentations")
         self.mosaic_prob = 0.0
         self.mixup_prob = 0.0
         self.hsv_prob = 0.0

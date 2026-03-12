@@ -121,7 +121,7 @@ class OBBDataset(CacheDataset):
         res[:, :4] *= r
 
         # debug
-         for ix in range(num_objs):
+        for ix in range(num_objs):
             if res[ix, 2] <= 0 or res[ix, 3] <= 0:
                 print(f"BLO obb.py Warning: negative size after scaling for box {ix}: {res[ix, :4]}")
 

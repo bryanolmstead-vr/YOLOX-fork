@@ -5,7 +5,7 @@ import os
 
 from yolox.exp import Exp as MyExp
 # Import OBB dataset and transforms
-from yolox.data.obb import OBBDataset
+from yolox.data.datasets.obb import OBBDataset
 from yolox.data import TrainTransform, ValTransform
 
 # yolox_s_obb_3classes.py

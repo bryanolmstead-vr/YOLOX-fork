@@ -297,7 +297,7 @@ class YOLOXHead(nn.Module):
                 fg_mask = outputs.new_zeros(total_num_anchors).bool()
             else:
                 gt_bboxes_per_image = labels[batch_idx, :num_gt, 0:6]  # [xc, yc, w, h, theta, cls]
-                print(f"  BLO head {batch_idx}: {gt_bboxes_per_image}")
+                print(f"  BLO head: {batch_idx}: {gt_bboxes_per_image}")
 
                 gt_classes = gt_bboxes_per_image[:, 5]
                 gt_bboxes_per_image = gt_bboxes_per_image[:, :5]  # keep only bbox info for AABB or OBB head

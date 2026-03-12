@@ -480,6 +480,10 @@ class YOLOXHead(nn.Module):
         #    (bboxes_preds_per_image_cpu[:, 2:] <= 0).any())
 
         pair_wise_ious = bboxes_iou(gt_bboxes_per_image, bboxes_preds_per_image, False)
+        print(" BLO GT boxes:", gt_bboxes_per_image)
+        print(" BLO Pred boxes:", bboxes_preds_per_image)
+        print(" BLO pair_wise_ious:", pair_wise_ious)
+        print(" BLOpair_wise_ious shape:", pair_wise_ious.shape)
 
         gt_cls_per_image = (
             F.one_hot(gt_classes.to(torch.int64), self.num_classes)

@@ -195,8 +195,5 @@ class OBBDataset(CacheDataset):
 
         if self.preproc is not None:
             img, target = self.preproc(img, target, self.input_dim)
-            # BLO debug
-            neg_idx = np.where((target[:,2] <= 0) | (target[:,3] <= 0))[0]
-            if len(neg_idx) > 0:
-                print(f"BLO obb.py Negatives after preproc at idx {index}: {target[neg_idx]}")
+        print(f"BLO Mosaic final targets: {target}")
         return img, target, img_info, img_id

@@ -473,11 +473,11 @@ class YOLOXHead(nn.Module):
 
         gt_bboxes_per_image_cpu = gt_bboxes_per_image.detach().cpu()
         bboxes_preds_per_image_cpu = bboxes_preds_per_image.detach().cpu()
-        print("BLO GT boxes:", gt_bboxes_per_image_cpu)
-        print("Pred boxes:", bboxes_preds_per_image_cpu)
-        print("Any non-positive w/h:", 
-            (gt_bboxes_per_image_cpu[:, 2:] <= 0).any(), 
-            (bboxes_preds_per_image_cpu[:, 2:] <= 0).any())
+        #print("BLO GT boxes:", gt_bboxes_per_image_cpu)
+        #print("Pred boxes:", bboxes_preds_per_image_cpu)
+        #print("Any non-positive w/h:", 
+        #    (gt_bboxes_per_image_cpu[:, 2:] <= 0).any(), 
+        #    (bboxes_preds_per_image_cpu[:, 2:] <= 0).any())
 
         pair_wise_ious = bboxes_iou(gt_bboxes_per_image, bboxes_preds_per_image, False)
 

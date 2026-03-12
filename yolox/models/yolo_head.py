@@ -296,8 +296,8 @@ class YOLOXHead(nn.Module):
                 obj_target = outputs.new_zeros((total_num_anchors, 1))
                 fg_mask = outputs.new_zeros(total_num_anchors).bool()
             else:
-                gt_bboxes_per_image = labels[batch_idx, :num_gt, 1:5]  # [xc, yc, w, h, theta]
-                print(f"BLO Batch {batch_idx} - raw labels slice [1:5]:\n{gt_bboxes_per_image}")
+                gt_bboxes_per_image = labels[batch_idx, :num_gt, 0:5]  # [xc, yc, w, h, theta]
+                print(f"BLO Batch {batch_idx} - raw labels slice [0:5]:\n{gt_bboxes_per_image}")
                 # BLO - ignore theta and pass it [xc, yc, w, h] and it will think it is AABB
                 gt_bboxes_per_image = gt_bboxes_per_image[:, :4]  # [xc, yc, w, h]
                 print(f"BLO Batch {batch_idx} - ground-truth boxes used [xc, yc, w, h]:\n{gt_bboxes_per_image}")

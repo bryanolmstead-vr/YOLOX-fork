@@ -98,8 +98,8 @@ class Trainer:
 
         inps, targets = self.prefetcher.next()
 
-        print("BLO: DataLoader labels:", targets[0][0])
-        print("dtype:", targets.dtype)
+        #print("BLO: DataLoader labels:", targets[0][0])
+        #print("dtype:", targets.dtype)
 
         inps = inps.to(self.data_type)
         targets = targets.to(self.data_type)

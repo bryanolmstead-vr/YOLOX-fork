@@ -171,7 +171,7 @@ class OBBDataset(CacheDataset):
         label, origin_image_size, _, _ = self.annotations[index]
         img = self.read_img(index)
 
-        print(f"BLO pull_item index {index}, img_id {id_}, labels {label}")
+        #print(f"BLO pull_item index {index}, img_id {id_}, labels {label}")
         return img, copy.deepcopy(label), origin_image_size, np.array([id_])
 
     @CacheDataset.mosaic_getitem
@@ -198,5 +198,5 @@ class OBBDataset(CacheDataset):
 
         if self.preproc is not None:
             img, target = self.preproc(img, target, self.input_dim)
-        print(f"BLO __getitem__ index={index}, target after preproc: {target}")
+        #print(f"BLO __getitem__ index={index}, target after preproc: {target}")
         return img, target, img_info, img_id

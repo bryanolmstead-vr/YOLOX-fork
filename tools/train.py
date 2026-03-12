@@ -134,18 +134,17 @@ if __name__ == "__main__":
     if args.cache is not None:
         exp.dataset = exp.get_dataset(cache=True, cache_type=args.cache)
 
-    # BLO - debug negative width and height
-    print("BLO Starting debug loop to check for negative widths/heights in dataset...")
-    for idx in range(len(exp.dataset)):
-        sample = exp.dataset[idx]
-        boxes = sample["boxes"]  # shape [num_boxes, 4] -> [x_center, y_center, w, h]
+    # BLO debug dataset
+    print("BLO Debug: Checking dataset for any non-positive width/height boxes...")
+    dataset = exp.get_dataset(cache=True)  # force load
+    for idx in range(len(dataset)):
+        sample = dataset[idx]
+        boxes = sample["boxes"]
         widths = boxes[:, 2]
         heights = boxes[:, 3]
         if (widths <= 0).any() or (heights <= 0).any():
-            print(f"Negative or zero width/height found in sample {idx}")
-            print("Boxes:", boxes)
-    print("BLO Finished debug loop for negative widths/heights.")
-    # BLO - end debug
+            print(f"Bad box at sample {idx}", boxes)
+    print
 
     dist_url = "auto" if args.dist_url is None else args.dist_url
     launch(

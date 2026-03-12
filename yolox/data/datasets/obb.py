@@ -109,7 +109,6 @@ class OBBDataset(CacheDataset):
 
             # directly use OBB bbox and angle
             xc, yc, w, h = obj["bbox"]
-            theta = obj.get("angle", 0.0)  # fallback to 0 if missing
             theta_deg = obj.get("angle", 0.0)
             theta_rad = np.deg2rad(theta_deg)
 
@@ -185,18 +184,21 @@ class OBBDataset(CacheDataset):
         Returns:
             img (numpy.ndarray): pre-processed image
             padded_labels (torch.Tensor): pre-processed label data.
-                The shape is :math:`[max_labels, 5]`.
+                The shape is :math:`[max_labels, 6]`.
+                original coco.py said:
                 each label consists of [class, xc, yc, w, h]:
                     class (float): class index.
                     xc, yc (float) : center of bbox whose values range from 0 to 1.
                     w, h (float) : size of bbox whose values range from 0 to 1.
+                but for OBB we have 6 values: [xc, yc, w, h, angle, class_id]
             info_img : tuple of h, w.
                 h, w (int): original shape of the image
             img_id (int): same as the input index. Used for evaluation.
         """
         img, target, img_info, img_id = self.pull_item(index)
 
+        print(f"BLO __getitem__ index={index}, target before preproc: {target}")
         if self.preproc is not None:
             img, target = self.preproc(img, target, self.input_dim)
-        #print(f"BLO __getitem__ index={index}, target after preproc: {target}")
+        print(f"BLO __getitem__ index={index}, target after preproc: {target}")
         return img, target, img_info, img_id

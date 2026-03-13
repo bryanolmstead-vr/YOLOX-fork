@@ -11,7 +11,7 @@ from yolox.data import TrainTransform, ValTransform
 # yolox_s_obb_3classes.py
 # input data has 3 classes: candy, cards, cheeto
 # format: [id, x_center, y_center, width, height, angle]
-# x_center, y_center, width, height are normalized to [0, 1]
+# x_center, y_center, width, height are pixels [0,640]
 # angle is in degrees, range [-180, 180]
 
 class Exp(MyExp):

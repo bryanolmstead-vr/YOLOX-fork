@@ -87,7 +87,8 @@ class Exp(MyExp):
     
     def get_eval_dataset(self, **kwargs):
         print("BLO - loading validation dataset")
-        legacy = kwargs.get("legacy", False)
+        #legacy = kwargs.get("legacy", False)
+        legacy = kwargs.get("legacy", True)
         return OBBDataset(
             data_dir=self.data_dir,
             json_file=self.val_ann,

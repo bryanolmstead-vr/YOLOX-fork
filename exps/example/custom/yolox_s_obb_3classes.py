@@ -70,7 +70,7 @@ class Exp(MyExp):
         self.no_aug_epochs = 5
 
     def get_dataset(self, cache: bool = False, cache_type: str = "ram"):
-        print("BLO - loading validation dataset")
+        print("BLO - loading training dataset")
         return OBBDataset(
             data_dir=self.data_dir,
             json_file=self.train_ann,

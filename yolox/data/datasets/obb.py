@@ -197,8 +197,8 @@ class OBBDataset(CacheDataset):
         """
         img, target, img_info, img_id = self.pull_item(index)
 
-        print(f"BLO __getitem__ index={index}, target before preproc: {target}")
+        #print(f"BLO __getitem__ index={index}, target before preproc: {target}")
         if self.preproc is not None:
             img, target = self.preproc(img, target, self.input_dim)
-        print(f"BLO __getitem__ index={index}, target after preproc: {target}")
+        #print(f"BLO __getitem__ index={index}, target after preproc: {target}")
         return img, target, img_info, img_id

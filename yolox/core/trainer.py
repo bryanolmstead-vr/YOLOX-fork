@@ -107,11 +107,11 @@ class Trainer:
         inps, targets = self.exp.preprocess(inps, targets, self.input_size)
 
         # Debug: inspect preprocessed labels
-        for b in range(targets.shape[0]):
-            print(f"BLO Batch {b}:")
-            print("Targets shape:", targets[b].shape)
-            print("First 5 labels (xc,yc,w,h,theta,class):")
-            print(targets[b][:5])
+        #for b in range(targets.shape[0]):
+        #    print(f"BLO Batch {b}:")
+        #    print("Targets shape:", targets[b].shape)
+        #    print("First 5 labels (xc,yc,w,h,theta,class):")
+        #    print(targets[b][:5])
 
         data_end_time = time.time()
 

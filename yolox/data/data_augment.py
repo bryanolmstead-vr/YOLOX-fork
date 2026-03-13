@@ -273,7 +273,7 @@ class ValTransform:
         self.legacy = legacy
 
     # assume input is cv2 img for now
-    def __call__(self, img, targets=None, input_size=(640, 640)):
+    def __call__(self, img, targets=None, input_size=(640, 640), max_labels=50):
         img, r = preproc(img, input_size, self.swap)
         if self.legacy:
             img = img[::-1, :, :].copy()
@@ -281,12 +281,19 @@ class ValTransform:
             img -= np.array([0.485, 0.456, 0.406]).reshape(3, 1, 1)
             img /= np.array([0.229, 0.224, 0.225]).reshape(3, 1, 1)
 
-        # Handle labels
-        if targets is None or len(targets) == 0:
-            padded_labels = np.zeros((1, 6), dtype=np.float32)
-        else:
-            padded_labels = targets.copy()
-            padded_labels[:, :4] *= r  # scale xc, yc, w, h
-            # theta and class unchanged
+        # Handle labels - BLO new code
+        padded_labels = np.zeros((max_labels, 6), dtype=np.float32)
+        if targets is not None and len(targets) > 0:
+            targets_copy = targets.copy()
+            targets_copy[:, :4] *= r
+            num_labels = min(len(targets_copy), max_labels)
+            padded_labels[:num_labels] = targets_copy[:num_labels]
+        
+        #if targets is None or len(targets) == 0:
+        #    padded_labels = np.zeros((1, 6), dtype=np.float32)
+        #else:
+        #    padded_labels = targets.copy()
+        #    padded_labels[:, :4] *= r  # scale xc, yc, w, h
+        #    # theta and class unchanged
 
         return img, padded_labels

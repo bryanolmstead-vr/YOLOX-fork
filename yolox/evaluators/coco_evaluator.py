@@ -167,6 +167,16 @@ class COCOEvaluator:
                     start = time.time()
 
                 outputs = model(imgs)
+
+                # BLO debug
+                if outputs is not None:
+                    # print first image in the batch
+                    first_image = outputs[0]  # shape: [num_boxes, channels]
+                    if first_image.size(0) > 0:
+                        # print first 5 columns of first box: xc, yc, w, h, obj
+                        first_box = first_image[0, :5]
+                        print(f"BLO COCO eval raw model output first box (xc,yc,w,h,obj): {first_box}")
+
                 if decoder is not None:
                     outputs = decoder(outputs, dtype=outputs.type())
 

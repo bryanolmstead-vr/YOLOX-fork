@@ -284,6 +284,7 @@ class COCOEvaluator:
             cocoGt = self.dataloader.dataset.coco
             # TODO: since pycocotools can't process dict in py36, write data to json file.
             if self.testdev:
+                print("BLO debug COCOEvaluator data_dict sample:", data_dict[:3])
                 json.dump(data_dict, open("./yolox_testdev_2017.json", "w"))
                 cocoDt = cocoGt.loadRes("./yolox_testdev_2017.json")
             else:

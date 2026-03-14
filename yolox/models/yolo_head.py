@@ -595,7 +595,7 @@ class YOLOXHead(nn.Module):
 
         anchor_matching_gt = matching_matrix.sum(0)
         # deal with the case that one anchor matches multiple ground-truths
-        if anchor_matching_gt.max() > 1:
+        if anchor_matching_gt.numel() > 0 and anchor_matching_gt.max() > 1:
             multiple_match_mask = anchor_matching_gt > 1
             _, cost_argmin = torch.min(cost[:, multiple_match_mask], dim=0)
             matching_matrix[:, multiple_match_mask] *= 0

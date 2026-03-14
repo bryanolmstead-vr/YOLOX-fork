@@ -572,9 +572,23 @@ class YOLOXHead(nn.Module):
         topk_ious, _ = torch.topk(pair_wise_ious, n_candidate_k, dim=1)
         dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1)
         for gt_idx in range(num_gt):
+
+            # BLO safety patch: skip GT boxes with no candidate anchors
+            if cost.shape[1] == 0:
+                continue
+
+            k = dynamic_ks[gt_idx]
+
+            # another safety check
+            k = min(k, cost.shape[1])
+
+            if k <= 0:
+                continue
+
             _, pos_idx = torch.topk(
-                cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
+                cost[gt_idx], k=k, largest=False
             )
+
             matching_matrix[gt_idx][pos_idx] = 1
 
         del topk_ious, dynamic_ks, pos_idx

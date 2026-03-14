@@ -24,7 +24,7 @@ class Exp(MyExp):
         # Define yourself dataset path (assumes we are in YOLOX directory)
         self.data_dir = "../YOLOX-OneShot/datasets/OBB360"
         # BLO - modify these files to include aabb w,h but store in obb format
-        self.train_ann = "instances_obb2aabbtrain2017.json"
+        self.train_ann = "instances_obb2aabb_train2017.json"
         self.val_ann = "instances_obb2aabb_val2017.json"
 
         self.num_classes = 3

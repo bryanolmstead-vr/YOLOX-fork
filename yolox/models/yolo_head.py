@@ -591,7 +591,7 @@ class YOLOXHead(nn.Module):
 
             matching_matrix[gt_idx][pos_idx] = 1
 
-        del topk_ious, dynamic_ks, pos_idx
+        del topk_ious, dynamic_ks
 
         anchor_matching_gt = matching_matrix.sum(0)
         # deal with the case that one anchor matches multiple ground-truths

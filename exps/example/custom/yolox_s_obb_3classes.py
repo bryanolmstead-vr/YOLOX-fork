@@ -56,16 +56,16 @@ class Exp(MyExp):
         self.perspective = 0.0
 
         # TURN OFF ALL AUGMENTATIONS  
-        print("BLO - Turned off all augmentations")
-        self.mosaic_prob = 0.0
-        self.mixup_prob = 0.0
-        self.hsv_prob = 0.0
-        self.flip_prob = 0.0 
-        self.degrees = 0.0
-        self.translate = 0.0
-        self.scale = (1.0, 1.0)
-        self.shear = 0.0
-        self.perspective = 0.0
+        #print("BLO - Turned off all augmentations")
+        #self.mosaic_prob = 0.0
+        #self.mixup_prob = 0.0
+        #self.hsv_prob = 0.0
+        #self.flip_prob = 0.0 
+        #self.degrees = 0.0
+        #self.translate = 0.0
+        #self.scale = (1.0, 1.0)
+        #self.shear = 0.0
+        #self.perspective = 0.0
 
         # Disable mosaic in final epochs
         self.no_aug_epochs = 5

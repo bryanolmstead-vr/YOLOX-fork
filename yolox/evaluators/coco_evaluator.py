@@ -289,6 +289,7 @@ class COCOEvaluator:
                 cocoDt = cocoGt.loadRes("./yolox_testdev_2017.json")
             else:
                 _, tmp = tempfile.mkstemp()
+                print("BLO debug COCOEvaluator data_dict sample:", data_dict[:3])
                 json.dump(data_dict, open(tmp, "w"))
                 cocoDt = cocoGt.loadRes(tmp)
             try:

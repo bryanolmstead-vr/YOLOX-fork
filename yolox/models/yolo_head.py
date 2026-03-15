@@ -8,6 +8,7 @@ from loguru import logger
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy
 
 from yolox.utils import bboxes_iou, cxcywh2xyxy, meshgrid, visualize_assign
 
@@ -296,9 +297,20 @@ class YOLOXHead(nn.Module):
                 obj_target = outputs.new_zeros((total_num_anchors, 1))
                 fg_mask = outputs.new_zeros(total_num_anchors).bool()
             else:
-                gt_bboxes_per_image = labels[batch_idx, :num_gt, 1:5]
-                gt_classes = labels[batch_idx, :num_gt, 0]
+                gt_bboxes_per_image = labels[batch_idx, :num_gt, 0:6]  # [xc, yc, w, h, theta, cls]
+                #print(f"  BLO head: {batch_idx}: {gt_bboxes_per_image}")
+
+                gt_classes = gt_bboxes_per_image[:, 5]
+                gt_bboxes_per_image = gt_bboxes_per_image[:, :5]  # keep only bbox info for AABB or OBB head
+
+                # ignore theta and pass [xc, yc, w, h] to AABB head
+                gt_bboxes_per_image = gt_bboxes_per_image[:, :4]      # [xc, yc, w, h]
+                #print(f"BLO Batch {batch_idx} - ground-truth boxes used [xc, yc, w, h]:\n{gt_bboxes_per_image}")
+                #print(f"BLO Batch {batch_idx} - classes:\n{gt_classes}")
+
                 bboxes_preds_per_image = bbox_preds[batch_idx]
+                #print(f"BLO Batch {batch_idx} - predicted boxes shape: {bboxes_preds_per_image.shape}")
+                #print(f"BLO Batch {batch_idx} - predicted boxes sample (first 5):\n{bboxes_preds_per_image[:5]}")
 
                 try:
                     (
@@ -460,7 +472,19 @@ class YOLOXHead(nn.Module):
             gt_bboxes_per_image = gt_bboxes_per_image.cpu()
             bboxes_preds_per_image = bboxes_preds_per_image.cpu()
 
+        gt_bboxes_per_image_cpu = gt_bboxes_per_image.detach().cpu()
+        bboxes_preds_per_image_cpu = bboxes_preds_per_image.detach().cpu()
+        #print("BLO GT boxes:", gt_bboxes_per_image_cpu)
+        #print("Pred boxes:", bboxes_preds_per_image_cpu)
+        #print("Any non-positive w/h:", 
+        #    (gt_bboxes_per_image_cpu[:, 2:] <= 0).any(), 
+        #    (bboxes_preds_per_image_cpu[:, 2:] <= 0).any())
+
         pair_wise_ious = bboxes_iou(gt_bboxes_per_image, bboxes_preds_per_image, False)
+        #print("BLO GT boxes:", numpy.round(gt_bboxes_per_image.cpu().numpy(), 2))
+        #print(" BLO Pred boxes:", bboxes_preds_per_image)
+        #print(" BLO pair_wise_ious:", pair_wise_ious)
+        #print(" BLOpair_wise_ious shape:", pair_wise_ious.shape)
 
         gt_cls_per_image = (
             F.one_hot(gt_classes.to(torch.int64), self.num_classes)
@@ -548,16 +572,30 @@ class YOLOXHead(nn.Module):
         topk_ious, _ = torch.topk(pair_wise_ious, n_candidate_k, dim=1)
         dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1)
         for gt_idx in range(num_gt):
+
+            # BLO safety patch: skip GT boxes with no candidate anchors
+            if cost.shape[1] == 0:
+                continue
+
+            k = dynamic_ks[gt_idx]
+
+            # another safety check
+            k = min(k, cost.shape[1])
+
+            if k <= 0:
+                continue
+
             _, pos_idx = torch.topk(
-                cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
+                cost[gt_idx], k=k, largest=False
             )
+
             matching_matrix[gt_idx][pos_idx] = 1
 
-        del topk_ious, dynamic_ks, pos_idx
+        del topk_ious, dynamic_ks
 
         anchor_matching_gt = matching_matrix.sum(0)
         # deal with the case that one anchor matches multiple ground-truths
-        if anchor_matching_gt.max() > 1:
+        if anchor_matching_gt.numel() > 0 and anchor_matching_gt.max() > 1:
             multiple_match_mask = anchor_matching_gt > 1
             _, cost_argmin = torch.min(cost[:, multiple_match_mask], dim=0)
             matching_matrix[:, multiple_match_mask] *= 0

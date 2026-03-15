@@ -167,6 +167,16 @@ class COCOEvaluator:
                     start = time.time()
 
                 outputs = model(imgs)
+
+                # BLO debug
+                if outputs is not None:
+                    # print first image in the batch
+                    first_image = outputs[0]  # shape: [num_boxes, channels]
+                    if first_image.size(0) > 0:
+                        # print first 5 columns of first box: xc, yc, w, h, obj
+                        first_box = first_image[0, :5]
+                        print(f"BLO COCO eval raw model output first box (xc,yc,w,h,obj): {first_box}")
+
                 if decoder is not None:
                     outputs = decoder(outputs, dtype=outputs.type())
 
@@ -284,10 +294,12 @@ class COCOEvaluator:
             cocoGt = self.dataloader.dataset.coco
             # TODO: since pycocotools can't process dict in py36, write data to json file.
             if self.testdev:
+                print("BLO debug COCOEvaluator data_dict sample:", data_dict[:3])
                 json.dump(data_dict, open("./yolox_testdev_2017.json", "w"))
                 cocoDt = cocoGt.loadRes("./yolox_testdev_2017.json")
             else:
                 _, tmp = tempfile.mkstemp()
+                print("BLO debug COCOEvaluator data_dict sample:", data_dict[:3])
                 json.dump(data_dict, open(tmp, "w"))
                 cocoDt = cocoGt.loadRes(tmp)
             try:

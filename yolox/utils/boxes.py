@@ -30,6 +30,14 @@ def filter_box(output, scale_range):
 
 
 def postprocess(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, class_agnostic=False):
+    # BLO debug
+    if prediction is not None and prediction.size(0) > 0:
+        # print first box of first image
+        first_image = prediction[0]         # shape: [num_boxes, 5 + num_classes]
+        if first_image.size(0) > 0:
+            first_box = first_image[0, :5]  # take first 5 columns: xc, yc, w, h, obj
+            print("BLO boxes.py postprocess first box (xc,yc,w,h,obj):", first_box)
+
     box_corner = prediction.new(prediction.shape)
     box_corner[:, :, 0] = prediction[:, :, 0] - prediction[:, :, 2] / 2
     box_corner[:, :, 1] = prediction[:, :, 1] - prediction[:, :, 3] / 2

@@ -97,10 +97,22 @@ class Trainer:
         iter_start_time = time.time()
 
         inps, targets = self.prefetcher.next()
+
+        #print("BLO: DataLoader labels:", targets[0][0])
+        #print("dtype:", targets.dtype)
+
         inps = inps.to(self.data_type)
         targets = targets.to(self.data_type)
         targets.requires_grad = False
         inps, targets = self.exp.preprocess(inps, targets, self.input_size)
+
+        # Debug: inspect preprocessed labels
+        #for b in range(targets.shape[0]):
+        #    print(f"BLO Batch {b}:")
+        #    print("Targets shape:", targets[b].shape)
+        #    print("First 5 labels (xc,yc,w,h,theta,class):")
+        #    print(targets[b][:5])
+
         data_end_time = time.time()
 
         with torch.cuda.amp.autocast(enabled=self.amp_training):
